@@ -15,13 +15,17 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, ListView.OnItemClickListener{
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner bluetoothLeScanner;
@@ -29,10 +33,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView textview;
     private ListView listView;
     private List<BluetoothDevice> devices;
+    private ArrayAdapter<BluetoothDevice> adapter;
     private Handler handler = new Handler();
 
-    private static final SensirionSHT31UUIDS sensirion =  new SensirionSHT31UUIDS();
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD  = 10000;
     private static final int ACCESS_FINE   = 1;
     private static final int ACCESS_COARSE = 2;
 
@@ -41,17 +45,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Get everthing Bluetooth
         bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);;
         bluetoothAdapter = bluetoothManager.getAdapter();
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
+        // Get Button
         btn = (Button) findViewById(R.id.scan_devices);
         btn.setOnClickListener(this);
         btn.setText(R.string.bnt_enabled);
 
+        // Listview and devices
+        devices = new ArrayList<BluetoothDevice>();
+        adapter = new ArrayAdapter<BluetoothDevice>(this, android.R.layout.simple_list_item_1,
+                android.R.id.text1, devices);
+
         textview = (TextView) findViewById(R.id.textview);
         listView = (ListView) findViewById(R.id.listview);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(this);
 
+        // Turn on Bluetooth
         if(bluetoothAdapter == null || !bluetoothAdapter.isEnabled()){
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, 1);
@@ -59,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             btn.setEnabled(true);
         }
 
+        // Ask for required Permissions
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE);
 
@@ -70,10 +85,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[],
                                              int[] grantResults) {
+        // Check if i got the permissions I wanted
         textview.setText(permissions.toString());
         switch (requestCode) {
             case ACCESS_FINE: {
-                // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     textview.setText(textview.getText() + " " + "FINE");
@@ -96,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        // enable scan if bluetooth is turned on
         if(requestCode == 1){
             if (resultCode == RESULT_OK){
                 btn.setEnabled(true);
@@ -106,9 +122,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view){
+        // disable scan
         btn.setEnabled(false);
         btn.setText(R.string.btn_scanning);
+        adapter.clear();
 
+        // stop scan after SCAN_PERIOD
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -118,14 +137,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }, SCAN_PERIOD);
 
-        devices.clear();
         bluetoothLeScanner.startScan(scanCallback);
    }
 
     private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result){
-            devices.add(result.getDevice());
+            BluetoothDevice device = result.getDevice();
+            if(device != null) {
+                adapter.add(device);
+            }
         }
 
         @Override
@@ -133,4 +154,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             textview.setText("found something");
         }
     };
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        bluetoothLeScanner.stopScan(scanCallback);
+        textview.setText("item clicked");
+    }
 }
