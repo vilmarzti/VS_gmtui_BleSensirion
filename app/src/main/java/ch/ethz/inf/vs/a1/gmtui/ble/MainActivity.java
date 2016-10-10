@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -26,8 +27,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private BluetoothLeScanner bluetoothLeScanner;
     private Button btn;
     private TextView textview;
+    private ListView listView;
+    private List<BluetoothDevice> devices;
     private Handler handler = new Handler();
 
+    private static final SensirionSHT31UUIDS sensirion =  new SensirionSHT31UUIDS();
     private static final long SCAN_PERIOD = 10000;
     private static final int ACCESS_FINE   = 1;
     private static final int ACCESS_COARSE = 2;
@@ -45,7 +49,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn.setOnClickListener(this);
         btn.setText(R.string.bnt_enabled);
 
-        textview = (TextView) findViewById(R.id.textview1);
+        textview = (TextView) findViewById(R.id.textview);
+        listView = (ListView) findViewById(R.id.listview);
 
         if(bluetoothAdapter == null || !bluetoothAdapter.isEnabled()){
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -103,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view){
         btn.setEnabled(false);
         btn.setText(R.string.btn_scanning);
+
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -112,13 +118,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }, SCAN_PERIOD);
 
+        devices.clear();
         bluetoothLeScanner.startScan(scanCallback);
    }
 
     private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result){
-            textview.setText("found something");
+            devices.add(result.getDevice());
         }
 
         @Override
