@@ -142,16 +142,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result){
+            BluetoothDevice device;
+
             switch(callbackType){
-                case ScanSettings.CALLBACK_TYPE_FIRST_MATCH:
-                    BluetoothDevice device = result.getDevice();
-                    if (device != null) {
+                case ScanSettings.CALLBACK_TYPE_ALL_MATCHES:
+                    device = result.getDevice();
+                    if (device != null && adapter.getPosition(device) == -1 && result.getScanRecord().getDeviceName() != "") {
+                        textview.setText(result.getScanRecord().getDeviceName());
                         adapter.add(device);
                     }
                     return;
 
                 case ScanSettings.CALLBACK_TYPE_MATCH_LOST :
-                    adapter.remove(result.getDevice());
+                    device = result.getDevice();
+                    if (device != null) {
+                        adapter.remove(device);
+                    }
+                    return;
             }
         }
 

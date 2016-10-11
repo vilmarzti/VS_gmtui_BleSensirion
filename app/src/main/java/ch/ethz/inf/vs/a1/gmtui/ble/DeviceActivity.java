@@ -3,6 +3,7 @@ package ch.ethz.inf.vs.a1.gmtui.ble;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -13,11 +14,13 @@ import android.widget.TextView;
 import java.util.List;
 
 public class DeviceActivity extends AppCompatActivity {
-    BluetoothDevice device;
-    BluetoothGatt bluetoothGatt;
-    TextView textview;
-    private List<BluetoothDevice> services;
-    private ArrayAdapter<BluetoothDevice> adapter;
+    private BluetoothDevice device;
+    private BluetoothGatt bluetoothGatt;
+    private TextView textview;
+    private TextView device_name;
+    private SensirionSHT31UUIDS uuids;
+    private BluetoothGattService humidity;
+    private BluetoothGattService temperatur;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,10 +28,14 @@ public class DeviceActivity extends AppCompatActivity {
         setContentView(R.layout.activity_device);
 
         textview = (TextView) findViewById(R.id.connection_status);
+        textview.setText(R.string.distconnected);
+        device_name = (TextView) findViewById(R.id.device_name);
+
 
         Intent intent = getIntent();
         device = intent.getParcelableExtra("device");
         bluetoothGatt = device.connectGatt(this, false, gatCallback);;
+        bluetoothGatt.connect();
     }
 
     private final BluetoothGattCallback gatCallback = new BluetoothGattCallback() {
@@ -45,9 +52,13 @@ public class DeviceActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onServicessDiscovered(BluetoothGatt gatt,int status){
+        public void onServicesDiscovered(BluetoothGatt gatt,int status){
+            textview.setText("discovered something");
             if(status == BluetoothGatt.GATT_SUCCESS){
+                humidity = gatt.getService(SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE);
+                temperatur = gatt.getService(SensirionSHT31UUIDS.UUID_TEMPERATURE_SERVICE);
 
+                textview.setText("success");
             }
 
         }
