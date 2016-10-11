@@ -147,7 +147,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch(callbackType){
                 case ScanSettings.CALLBACK_TYPE_ALL_MATCHES:
                     device = result.getDevice();
-                    if (device != null && adapter.getPosition(device) == -1 && result.getScanRecord().getDeviceName() != "") {
+                    if (device != null && adapter.getPosition(device) == -1 &&
+                            result.getScanRecord().getDeviceName() != null &&
+                            result.getScanRecord().getDeviceName().equals("Smart Humigadget")){
                         textview.setText(result.getScanRecord().getDeviceName());
                         adapter.add(device);
                     }
