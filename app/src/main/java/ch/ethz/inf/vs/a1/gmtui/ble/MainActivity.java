@@ -145,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (device != null && adapter.getPosition(device) == -1 &&
                             result.getScanRecord().getDeviceName() != null &&
                             result.getScanRecord().getDeviceName().equals("Smart Humigadget")){
+
                         adapter.add(device);
                     }
                     return;
