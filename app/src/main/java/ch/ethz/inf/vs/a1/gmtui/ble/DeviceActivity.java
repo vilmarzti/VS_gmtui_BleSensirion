@@ -3,6 +3,7 @@ package ch.ethz.inf.vs.a1.gmtui.ble;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
@@ -57,6 +58,9 @@ public class DeviceActivity extends AppCompatActivity {
             if(status == BluetoothGatt.GATT_SUCCESS){
                 humidity = gatt.getService(SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE);
                 temperatur = gatt.getService(SensirionSHT31UUIDS.UUID_TEMPERATURE_SERVICE);
+                //BluetoothGattCharacteristic humidityCharacteristic = new BluetoothGattCharacteristic();
+
+                //humidity.addCharacteristic(humidityCharacteristic);
 
                 textview.setText("success");
             }
