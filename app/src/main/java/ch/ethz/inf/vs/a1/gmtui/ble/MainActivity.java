@@ -7,10 +7,12 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 android.R.id.text1, devices);
 
         textview = (TextView) findViewById(R.id.textview);
-        listView = (ListView) findViewById(R.id.listview);
+        listView = (ListView) findViewById(R.id.device_view);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
 
@@ -87,25 +89,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                              int[] grantResults) {
         // Check if i got the permissions I wanted
         textview.setText(permissions.toString());
+
         switch (requestCode) {
-            case ACCESS_FINE: {
+            case ACCESS_FINE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     textview.setText(textview.getText() + " " + "FINE");
                 }
-                else{
-                    textview.setText(":(");
-                }
                 return;
-            }
-            case ACCESS_COARSE: {
+
+
+            case ACCESS_COARSE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     textview.setText(textview.getText() + " " + "COARSE");
                 }
                 return;
-            }
-
         }
     }
 
@@ -143,9 +142,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result){
-            BluetoothDevice device = result.getDevice();
-            if(device != null) {
-                adapter.add(device);
+            switch(callbackType){
+                case ScanSettings.CALLBACK_TYPE_FIRST_MATCH:
+                    BluetoothDevice device = result.getDevice();
+                    if (device != null) {
+                        adapter.add(device);
+                    }
+                    return;
+
+                case ScanSettings.CALLBACK_TYPE_MATCH_LOST :
+                    adapter.remove(result.getDevice());
             }
         }
 
@@ -158,6 +164,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         bluetoothLeScanner.stopScan(scanCallback);
-        textview.setText("item clicked");
+        btn.setEnabled(true);
+        btn.setText(R.string.bnt_enabled);
+
+        BluetoothDevice device = devices.get(position);
+        Intent intent = new Intent(this, DeviceActivity.class);
+        intent.putExtra("device",(Parcelable) device);
+        startActivity(intent);
     }
 }

@@ -2,4 +2,6 @@
     <string name="app_name">VS_gmtui_BleSensirion</string>
     <string name="bnt_enabled">Scan Devices</string>
     <string name="btn_scanning">Scanning</string>
+    <string name="connected">CONNECTED</string>
+    <string name="distconnected">NOT CONNECTED</string>
 </resources>
