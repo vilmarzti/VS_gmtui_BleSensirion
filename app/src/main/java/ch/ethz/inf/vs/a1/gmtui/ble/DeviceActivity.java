@@ -33,7 +33,6 @@ public class DeviceActivity extends AppCompatActivity {
         Intent intent = getIntent();
         device = intent.getParcelableExtra("device");
         bluetoothGatt = device.connectGatt(this, false, gatCallback);;
-        bluetoothGatt.connect();
     }
 
     private final BluetoothGattCallback gatCallback = new BluetoothGattCallback() {
