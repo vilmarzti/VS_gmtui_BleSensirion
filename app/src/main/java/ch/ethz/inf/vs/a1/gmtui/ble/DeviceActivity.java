@@ -59,10 +59,13 @@ public class DeviceActivity extends AppCompatActivity {
 
                 //
                 BluetoothGattCharacteristic humidityCharacteristic = humidity.getCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC);
-                byte[] config = humidityCharacteristic.getValue();
-                for (byte i:config){
-                    i = 1;
-                }
+                //byte[] config = humidityCharacteristic.getValue();
+                //for (byte i:config){
+                //   i=-1;
+                //}
+                byte[] config = new byte[1];
+                config[0] = -1;
+
                 humidityCharacteristic.setValue(config);
                 humidity.addCharacteristic(humidityCharacteristic);
                 textview.setText(humidity.getCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE).getValue().toString());
