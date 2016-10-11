@@ -55,11 +55,19 @@ public class DeviceActivity extends AppCompatActivity {
             if(status == BluetoothGatt.GATT_SUCCESS){
                 humidity = gatt.getService(SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE);
                 temperatur = gatt.getService(SensirionSHT31UUIDS.UUID_TEMPERATURE_SERVICE);
-                //BluetoothGattCharacteristic humidityCharacteristic = new BluetoothGattCharacteristic();
 
-                //humidity.addCharacteristic(humidityCharacteristic);
 
-                textview.setText("success");
+                //
+                BluetoothGattCharacteristic humidityCharacteristic = humidity.getCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC);
+                byte[] config = humidityCharacteristic.getValue();
+                for (byte i:config){
+                    i = 1;
+                }
+                humidityCharacteristic.setValue(config);
+                humidity.addCharacteristic(humidityCharacteristic);
+                textview.setText(humidity.getCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE).getValue().toString());
+                //
+                //textview.setText("success");
             }
 
         }
