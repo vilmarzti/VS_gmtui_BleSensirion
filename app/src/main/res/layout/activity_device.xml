@@ -23,9 +23,9 @@
         android:layout_height="wrap_content"
         android:text="@string/distconnected"/>
 
-    <ListView
-        android:id="@+id/service_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"/>
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graphview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>
