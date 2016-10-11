@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner bluetoothLeScanner;
     private Button btn;
-    private TextView textview;
     private ListView listView;
     private List<BluetoothDevice> devices;
     private ArrayAdapter<BluetoothDevice> adapter;
@@ -62,7 +61,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter = new ArrayAdapter<BluetoothDevice>(this, android.R.layout.simple_list_item_1,
                 android.R.id.text1, devices);
 
-        textview = (TextView) findViewById(R.id.textview);
         listView = (ListView) findViewById(R.id.device_view);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
@@ -88,13 +86,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onRequestPermissionsResult(int requestCode, String permissions[],
                                              int[] grantResults) {
         // Check if i got the permissions I wanted
-        textview.setText(permissions.toString());
 
         switch (requestCode) {
             case ACCESS_FINE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    textview.setText(textview.getText() + " " + "FINE");
                 }
                 return;
 
@@ -102,7 +98,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case ACCESS_COARSE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    textview.setText(textview.getText() + " " + "COARSE");
                 }
                 return;
         }
@@ -147,8 +142,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch(callbackType){
                 case ScanSettings.CALLBACK_TYPE_ALL_MATCHES:
                     device = result.getDevice();
-                    if (device != null && adapter.getPosition(device) == -1 && result.getScanRecord().getDeviceName() != "") {
-                        textview.setText(result.getScanRecord().getDeviceName());
+                    if (device != null && adapter.getPosition(device) == -1 &&
+                            result.getScanRecord().getDeviceName() != null &&
+                            result.getScanRecord().getDeviceName().equals("Smart Humigadget")){
                         adapter.add(device);
                     }
                     return;
@@ -164,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
-            textview.setText("found something");
         }
     };
 

@@ -9,10 +9,8 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.util.List;
 
 public class DeviceActivity extends AppCompatActivity {
     private BluetoothDevice device;
@@ -36,7 +34,6 @@ public class DeviceActivity extends AppCompatActivity {
         Intent intent = getIntent();
         device = intent.getParcelableExtra("device");
         bluetoothGatt = device.connectGatt(this, false, gatCallback);;
-        bluetoothGatt.connect();
     }
 
     private final BluetoothGattCallback gatCallback = new BluetoothGattCallback() {
