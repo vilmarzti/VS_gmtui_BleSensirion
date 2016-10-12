@@ -46,6 +46,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Turn on Bluetooth
+        if(bluetoothAdapter == null || !bluetoothAdapter.isEnabled()){
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 1);
+        }else{
+            btn.setEnabled(true);
+        }
+
+        // Ask for required Permissions
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE);
+
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, ACCESS_COARSE);
+
         // Get everthing Bluetooth
         bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);;
         bluetoothAdapter = bluetoothManager.getAdapter();
@@ -64,21 +79,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listView = (ListView) findViewById(R.id.device_view);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
-
-        // Turn on Bluetooth
-        if(bluetoothAdapter == null || !bluetoothAdapter.isEnabled()){
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, 1);
-        }else{
-            btn.setEnabled(true);
-        }
-
-        // Ask for required Permissions
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE);
-
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, ACCESS_COARSE);
 
     }
 

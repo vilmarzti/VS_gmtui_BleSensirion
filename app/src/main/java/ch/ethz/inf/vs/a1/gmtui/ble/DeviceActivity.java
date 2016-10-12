@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -47,6 +49,14 @@ public class DeviceActivity extends AppCompatActivity {
         textview = (TextView) findViewById(R.id.connection_status);
         textview.setText(R.string.distconnected);
 
+        humidityseries.setColor(Color.RED);
+        temperaturseries.setColor(Color.BLUE);
+
+        Viewport viewport = graphView.getViewport();
+        viewport.setYAxisBoundsManual(true);
+        viewport.setMaxY(100);
+        viewport.setMinY(-10);
+
         act = this;
 
         Intent intent = getIntent();
@@ -56,6 +66,12 @@ public class DeviceActivity extends AppCompatActivity {
         humibluetoothGatt.connect();
 
         starttime = System.currentTimeMillis();
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        humibluetoothGatt.disconnect();
     }
 
     private float convertRawValue(byte[] raw) {
@@ -69,6 +85,7 @@ public class DeviceActivity extends AppCompatActivity {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newstate){
             if(newstate == BluetoothProfile.STATE_CONNECTED){
                 gatt.discoverServices();
+                starttime = System.currentTimeMillis();
                 act.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -76,26 +93,22 @@ public class DeviceActivity extends AppCompatActivity {
                     }
                 });
             }
-            else{
-                //textview.setText(R.string.distconnected);
-            }
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic){
+
             final float a = convertRawValue(characteristic.getValue());
-
-
             act.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     double currentsec = (System.currentTimeMillis()- starttime)/1000.0;
                     if(characteristic.getUuid().equals(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC)){
-                        humidityseries.appendData(new DataPoint(currentsec, a), false, 100);
+                        humidityseries.appendData(new DataPoint(currentsec, a), false, 1000);
                         graphView.addSeries(humidityseries);
                     }
                     else{
-                        temperaturseries.appendData(new DataPoint(currentsec, a), false, 100);
+                        temperaturseries.appendData(new DataPoint(currentsec, a), false, 1000);
                         graphView.addSeries(temperaturseries);
                     }
                 }
@@ -122,14 +135,6 @@ public class DeviceActivity extends AppCompatActivity {
                 temperatur.addCharacteristic(newChar);
 
                 gatt.setCharacteristicNotification(newChar, true);
-
-
-                act.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        textview.setText(descriptor.getUuid().toString());
-                    }
-                });
             }
         }
 
@@ -137,7 +142,7 @@ public class DeviceActivity extends AppCompatActivity {
         public void onServicesDiscovered(BluetoothGatt gatt,int status){
             BluetoothGattCharacteristic characteristic;
 
-            if(status == BluetoothGatt.GATT_SUCCESS){
+            if(status == BluetoothGatt.GATT_SUCCESS && humidity == null){
                 humidity = gatt.getService(SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE);
 
                 characteristic = humidity.getCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC);
