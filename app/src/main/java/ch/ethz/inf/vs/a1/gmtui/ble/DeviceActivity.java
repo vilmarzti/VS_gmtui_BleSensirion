@@ -26,12 +26,14 @@ import java.nio.ByteOrder;
 
 public class DeviceActivity extends AppCompatActivity {
     private GraphView graphView;
-    private LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+    private LineGraphSeries<DataPoint> temperaturseries = new LineGraphSeries<>();
+    private LineGraphSeries<DataPoint> humidityseries = new LineGraphSeries<>();
     private BluetoothDevice device;
     private BluetoothGatt humibluetoothGatt;
     private TextView textview;
     private Activity act;
     private BluetoothGattService humidity;
+    private BluetoothGattService temperatur;
     private long starttime;
 
 
@@ -49,8 +51,10 @@ public class DeviceActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         device = intent.getParcelableExtra("device");
+
         humibluetoothGatt = device.connectGatt(this, true, humidCallback);
         humibluetoothGatt.connect();
+
         starttime = System.currentTimeMillis();
     }
 
@@ -65,6 +69,12 @@ public class DeviceActivity extends AppCompatActivity {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newstate){
             if(newstate == BluetoothProfile.STATE_CONNECTED){
                 gatt.discoverServices();
+                act.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textview.setText(R.string.connected);
+                    }
+                });
             }
             else{
                 //textview.setText(R.string.distconnected);
@@ -72,41 +82,81 @@ public class DeviceActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic){
+        public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic){
             final float a = convertRawValue(characteristic.getValue());
+
+
             act.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     double currentsec = (System.currentTimeMillis()- starttime)/1000.0;
-                    series.appendData(new DataPoint(currentsec, a), false, 100);
-                    graphView.addSeries(series);
+                    if(characteristic.getUuid().equals(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC)){
+                        humidityseries.appendData(new DataPoint(currentsec, a), false, 100);
+                        graphView.addSeries(humidityseries);
+                    }
+                    else{
+                        temperaturseries.appendData(new DataPoint(currentsec, a), false, 100);
+                        graphView.addSeries(temperaturseries);
+                    }
                 }
             });
         }
 
         @Override
+        public void onDescriptorWrite (BluetoothGatt gatt, final BluetoothGattDescriptor descriptor,
+                                    int status){
+            if(descriptor.getUuid().equals(SensirionSHT31UUIDS.NOTIFICATION_DESCRIPTOR_UUID) && temperatur == null) {
+
+                temperatur = gatt.getService(SensirionSHT31UUIDS.UUID_TEMPERATURE_SERVICE);
+
+                BluetoothGattCharacteristic characteristic = temperatur.getCharacteristic(SensirionSHT31UUIDS.UUID_TEMPERATURE_CHARACTERISTIC);
+
+                BluetoothGattDescriptor writedescriptor = temperatur.getCharacteristic(SensirionSHT31UUIDS.UUID_TEMPERATURE_CHARACTERISTIC).getDescriptors().get(1);
+                writedescriptor.setValue(new byte[]{1});
+                gatt.writeDescriptor(writedescriptor);
+
+                BluetoothGattCharacteristic newChar = new BluetoothGattCharacteristic(SensirionSHT31UUIDS.UUID_TEMPERATURE_CHARACTERISTIC,
+                        characteristic.getProperties(),
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+                temperatur.addCharacteristic(newChar);
+
+                gatt.setCharacteristicNotification(newChar, true);
+
+
+                act.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textview.setText(descriptor.getUuid().toString());
+                    }
+                });
+            }
+        }
+
+        @Override
         public void onServicesDiscovered(BluetoothGatt gatt,int status){
-            BluetoothGattCharacteristic humidityCharacteristic;
+            BluetoothGattCharacteristic characteristic;
 
             if(status == BluetoothGatt.GATT_SUCCESS){
                 humidity = gatt.getService(SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE);
 
-                humidityCharacteristic = humidity.getCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC);
+                characteristic = humidity.getCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC);
 
                 BluetoothGattDescriptor descriptor = humidity.getCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC).getDescriptors().get(1);
                 descriptor.setValue(new byte[]{1});
-
                 gatt.writeDescriptor(descriptor);
 
                 BluetoothGattCharacteristic newChar = new BluetoothGattCharacteristic(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC,
-                        humidityCharacteristic.getProperties(),
+                        characteristic.getProperties(),
                         BluetoothGattCharacteristic.PERMISSION_WRITE);
 
                 humidity.addCharacteristic(newChar);
+
                 gatt.setCharacteristicNotification(newChar, true);
             }
         }
 
     };
+
 
 }
