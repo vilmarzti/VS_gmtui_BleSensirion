@@ -62,10 +62,9 @@ public class DeviceActivity extends AppCompatActivity {
         Intent intent = getIntent();
         device = intent.getParcelableExtra("device");
 
+        starttime = System.currentTimeMillis();
         humibluetoothGatt = device.connectGatt(this, true, humidCallback);
         humibluetoothGatt.connect();
-
-        starttime = System.currentTimeMillis();
     }
 
     @Override
@@ -85,11 +84,18 @@ public class DeviceActivity extends AppCompatActivity {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newstate){
             if(newstate == BluetoothProfile.STATE_CONNECTED){
                 gatt.discoverServices();
-                starttime = System.currentTimeMillis();
                 act.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         textview.setText(R.string.connected);
+                    }
+                });
+            }
+            else{
+                 act.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textview.setText(R.string.distconnected);
                     }
                 });
             }
