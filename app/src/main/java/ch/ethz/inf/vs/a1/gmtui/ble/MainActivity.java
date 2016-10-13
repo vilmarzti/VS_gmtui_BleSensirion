@@ -62,14 +62,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, ACCESS_COARSE);
 
         // Get everthing Bluetooth
-        bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);;
-        bluetoothAdapter = bluetoothManager.getAdapter();
-        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+        //bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);;
+        //bluetoothAdapter = bluetoothManager.getAdapter();
+        //bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
         // Get Button
         btn = (Button) findViewById(R.id.scan_devices);
         btn.setOnClickListener(this);
         btn.setText(R.string.bnt_enabled);
+        btn.setEnabled(false);
 
         // Listview and devices
         devices = new ArrayList<BluetoothDevice>();
@@ -91,6 +92,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case ACCESS_FINE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                     // Get everthing Bluetooth
+                    bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);;
+                    bluetoothAdapter = bluetoothManager.getAdapter();
+                    bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+                    btn.setEnabled(true);
                 }
                 return;
 

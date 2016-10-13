@@ -27,6 +27,8 @@ import java.nio.ByteOrder;
 
 
 public class DeviceActivity extends AppCompatActivity {
+    private double minX = 0;
+    private double maxX = 50;
     private GraphView graphView;
     private LineGraphSeries<DataPoint> temperaturseries = new LineGraphSeries<>();
     private LineGraphSeries<DataPoint> humidityseries = new LineGraphSeries<>();
@@ -54,6 +56,9 @@ public class DeviceActivity extends AppCompatActivity {
 
         Viewport viewport = graphView.getViewport();
         viewport.setYAxisBoundsManual(true);
+        viewport.setXAxisBoundsManual(true);
+        viewport.setMaxX(maxX);
+        viewport.setMinX(minX);
         viewport.setMaxY(100);
         viewport.setMinY(-10);
 
@@ -62,7 +67,7 @@ public class DeviceActivity extends AppCompatActivity {
         Intent intent = getIntent();
         device = intent.getParcelableExtra("device");
 
-        starttime = System.currentTimeMillis();
+        starttime = 0;
         humibluetoothGatt = device.connectGatt(this, true, humidCallback);
         humibluetoothGatt.connect();
     }
@@ -84,6 +89,11 @@ public class DeviceActivity extends AppCompatActivity {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newstate){
             if(newstate == BluetoothProfile.STATE_CONNECTED){
                 gatt.discoverServices();
+
+                if(starttime == 0){
+                    starttime = System.currentTimeMillis();
+                }
+
                 act.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -112,10 +122,25 @@ public class DeviceActivity extends AppCompatActivity {
                     if(characteristic.getUuid().equals(SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC)){
                         humidityseries.appendData(new DataPoint(currentsec, a), false, 1000);
                         graphView.addSeries(humidityseries);
+
+                        if(humidityseries.getHighestValueX() > maxX){
+                            maxX = humidityseries.getHighestValueX();
+                            minX = maxX - 50;
+                            graphView.getViewport().setMaxX(maxX);
+                            graphView.getViewport().setMinX(minX);
+                        }
                     }
                     else{
                         temperaturseries.appendData(new DataPoint(currentsec, a), false, 1000);
                         graphView.addSeries(temperaturseries);
+
+                       if(temperaturseries.getHighestValueX() > maxX){
+                            maxX = temperaturseries.getHighestValueX();
+                            minX = maxX - 50;
+                            graphView.getViewport().setMaxX(maxX);
+                            graphView.getViewport().setMinX(minX);
+                        }
+
                     }
                 }
             });
